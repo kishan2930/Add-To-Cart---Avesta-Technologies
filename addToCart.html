@@ -1,0 +1,274 @@
+<html>
+  <head> </head>
+  <body>
+    <form name="productForm">
+      <h2>Product Form</h2>
+      <label for="product">Product : </label>
+      <select
+        name="product"
+        id="product"
+        onchange="calculateTotalPrice()"
+        required
+      >
+        <option value="">Choose Product</option>
+        <option value="Mouse">Mouse - $20</option>
+        <option value="Keyboard">Keyboard - $30</option>
+        <option value="Monitor">Monitor - $150</option>
+        <option value="Printer">Printer - $100</option>
+        <option value="USB Drive">USB Drive - $10</option>
+        <option value="Laptop">Laptop - $500</option>
+        <option value="Webcam">Webcam - $40</option>
+        <option value="Headphones">Headphones - $25</option></select
+      ><br /><br />
+
+      <label for="quantity">Quantity : </label>
+      <input
+        type="number"
+        id="quantity"
+        value="1"
+        min="1"
+        oninput="calculateTotalPrice()"
+        required
+      />
+      = <input type="text" id="totalPrice" readonly /><br /><br />
+
+      <label for="totalProPrice">Total Price : </label>
+      <input type="text" id="totalProPrice" readonly /><br /><br />
+
+      <button type="button" onclick="addToCart()">Add to Cart</button
+      ><br /><br />
+      <textarea
+        name="productDetailsTextarea"
+        readonly="true"
+        value=""
+        id="productDetailsTextarea"
+        cols="50"
+        rows="8"
+      ></textarea>
+      <br />
+    </form>
+    <hr />
+    <form id="customerInfoForm">
+      <h2>Customer Information</h2>
+      <label for="customerName">Name : </label>
+      <input type="text" id="customerName" required />
+      <br /><br />
+      <label for="customerEmail">Email : </label>
+      <input type="email" id="customerEmail" required />
+      <br /><br />
+      <label for="customerPhone">Phone Number : </label>
+      <input
+        type="text"
+        id="customerPhone"
+        required
+        pattern="[1-9]{1}[0-9]{9}"
+      />
+      <br /><br />
+      <button type="button" onclick="orderProduct()">Order Product</button
+      ><br /><br />
+      <textarea
+        id="customerDetailsTextarea"
+        cols="50"
+        rows="8"
+        readonly
+      ></textarea>
+    </form>
+    <hr />
+    <form id="showDetailsForm">
+      <h2>Order Details</h2>
+      <textarea id="showDetailsTextarea" cols="50" rows="8" readonly></textarea
+      ><br /><br />
+      <label for="recordNumber">Record : </label>
+      <input type="number" id="recordNumber" min="1" />
+      <button type="button" onclick="goToRecord()">Go To</button>
+      <br /><br />
+      <button type="button" onclick="showFirstRecord()">First</button>
+      <button type="button" onclick="showPreviousRecord()">Previous</button>
+      <button type="button" onclick="showNextRecord()">Next</button>
+      <button type="button" onclick="showLastRecord()">Last</button>
+    </form>
+    <script type="text/javascript">
+      // JavaScript objects to store products and customers
+      const products = {
+        Mouse: 20,
+        Keyboard: 30,
+        Monitor: 150,
+        Printer: 100,
+        "USB Drive": 10,
+        Laptop: 500,
+        Webcam: 40,
+        Headphones: 25,
+      };
+
+      let totalPri = 0;
+      let cart = [];
+
+      function calculateTotalPrice() {
+        const product = document.getElementById("product").value;
+        const price = products[product];
+        const quantity = parseInt(document.getElementById("quantity").value);
+
+        if (quantity > 0 && price) {
+          const totalPrice = price * quantity;
+          document.getElementById("totalPrice").value = `$${totalPrice}`;
+        } else {
+          document.getElementById("totalPrice").value = "";
+        }
+      }
+
+      function addToCart() {
+        document.getElementById("customerDetailsTextarea").value = "";
+        let productName = document.getElementById("product").value;
+        let quantity = parseInt(document.getElementById("quantity").value);
+        // console.log(productName);
+        if (!productName) {
+          alert("Please choose a product.");
+          return;
+        }
+        if (quantity < 1) {
+          alert("Please choose quantity minimum 1.");
+          return;
+        }
+        let price = products[productName];
+        let totalProPrice = price * quantity;
+        // document.getElementById("totalPrice").value = "$" + totalProPrice;
+        totalPri += totalProPrice;
+        document.getElementById("totalProPrice").value = "$" + totalPri;
+
+        let productInfo = {
+          proName: productName,
+          proQua: quantity,
+          pri: price,
+          totaP: totalProPrice,
+        };
+
+        cart.push(productInfo);
+
+        let showDetails = "Products : \n\n";
+        for (let item of cart) {
+          showDetails += `${item.proName} [$${item.pri} x ${item.proQua}] : $${item.totaP}\n`;
+        }
+        //   showDetails += `\nTotal Price is : $${totalPri}\n`;
+        document.getElementById("productDetailsTextarea").value = showDetails;
+        // console.log(cart);
+        // console.log(totalPri);
+        document.getElementById("product").value = "";
+        document.getElementById("quantity").value = "1";
+        document.getElementById("totalPrice").value = "";
+      }
+
+      let customerOrders = [];
+      let currentOrderIndex = -1;
+
+      function orderProduct() {
+        const name = document.getElementById("customerName").value.trim();
+        const email = document.getElementById("customerEmail").value.trim();
+        const phone = document.getElementById("customerPhone").value.trim();
+
+        if (!/^[a-zA-Z\s'-]+$/.test(name)) {
+          alert("Name cannot be empty.");
+          return;
+        }
+
+        if (
+          !/^([a-z A-Z 0-9 _\.\-])+\@(([a-z A-Z 0-9\-])+\.)+([a-z A-z 0-9]{3,3})+$/.test(
+            email
+          )
+        ) {
+          alert("Please enter a valid email.");
+          return;
+        }
+
+        if (!/^[1-9]{1}[0-9]{9}$/.test(phone)) {
+          alert("Please enter a valid 10-digit phone number.");
+          return;
+        }
+
+        if (cart.length === 0) {
+          alert("Please add products to the cart before ordering.");
+          return;
+        }
+
+        const customerOrder = {
+          name,
+          email,
+          phone,
+          cart: [...cart],
+        };
+
+        customerOrders.push(customerOrder);
+        currentOrderIndex = customerOrders.length - 1;
+        // console.log(customerOrders);
+
+        let orderDetails = `Customer : ${name}\nEmail : ${email}\nPhone : ${phone}\n\nProducts :\n\n`;
+        for (let item of cart) {
+          orderDetails += `${item.proName} [$${item.pri} x ${item.proQua}] : $${item.totaP}\n`;
+        }
+        orderDetails += `\nTotal Price is : $${totalPri}\n`;
+        document.getElementById("customerDetailsTextarea").value = orderDetails;
+
+        // Clear form fields for the next entry
+        document.getElementById("customerName").value = "";
+        document.getElementById("customerEmail").value = "";
+        document.getElementById("customerPhone").value = "";
+        document.getElementById("product").value = "";
+        document.getElementById("quantity").value = "1";
+        document.getElementById("totalPrice").value = "";
+        document.getElementById("totalProPrice").value = "";
+        document.getElementById("productDetailsTextarea").value = "";
+        cart = [];
+        totalPri = 0;
+
+        displayOrderDetails();
+      }
+
+      function goToRecord() {
+        const recordNumber = parseInt(
+          document.getElementById("recordNumber").value
+        );
+        if (recordNumber < 1 || recordNumber > customerOrders.length) {
+          alert("Invalid record number.");
+          return;
+        }
+        currentOrderIndex = recordNumber - 1;
+        displayOrderDetails();
+      }
+
+      function showFirstRecord() {
+        currentOrderIndex = 0;
+        displayOrderDetails();
+      }
+
+      function showPreviousRecord() {
+        if (currentOrderIndex > 0) {
+          currentOrderIndex--;
+          displayOrderDetails();
+        }
+      }
+
+      function showNextRecord() {
+        if (currentOrderIndex < customerOrders.length - 1) {
+          currentOrderIndex++;
+          displayOrderDetails();
+        }
+      }
+
+      function showLastRecord() {
+        currentOrderIndex = customerOrders.length - 1;
+        displayOrderDetails();
+      }
+
+      function displayOrderDetails() {
+        const order = customerOrders[currentOrderIndex];
+        let totalPri = 0;
+        let orderDetails = `Customer : ${order.name}\nEmail : ${order.email}\nPhone : ${order.phone}\n\nProducts :\n\n`;
+        for (let item of order.cart) {
+          orderDetails += `${item.proName} [$${item.pri} x ${item.proQua}] : $${item.totaP}\n`;
+          totalPri += item.totaP;
+        }
+        orderDetails += `\nTotal Price is : $${totalPri}\n`;
+        document.getElementById("showDetailsTextarea").value = orderDetails;
+      }
+    </script>
+  </body>
+</html>
